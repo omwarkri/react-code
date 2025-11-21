@@ -10,7 +10,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/omwarkri/react-code.git'
+                git branch: 'main', url: 'https://github.com/omwarkri/react-code.git'
             }
         }
 
