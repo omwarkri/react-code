@@ -1,38 +1,54 @@
-pipeline {
+https://github.com/omwarkri/react-code.gitpipeline {
     agent any
 
-    stages {
+    environment {
+        DOCKERHUB_USERNAME = "omwarkri123"
+        IMAGE_NAME = "react-app"
+    }
 
+    stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/omwarkri/react-code.git'
+                git 'https://github.com/omwarkri/react-code.git'
             }
         }
 
-        stage('Build React App') {
-            steps {
-                sh 'npm install'
-                sh 'npm run build'
-            }
-        }
-
-        stage('Build Docker Image') {
+        stage('Build React App & Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t react-docker-app:1.0 .'
+                    sh 'docker build -t $omwarkri123/$react-app:latest .'
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Login to Docker Hub') {
             steps {
                 script {
-                    sh '''
-                        docker rm -f react-app || true
-                        docker run -d --name react-app -p 3000:80 react-docker-app:1.0
-                    '''
+
+ sh "echo $Radhakrushn@123 | docker login -u $omwarkri123 --password-stdin"
                 }
             }
         }
-    }
-}
+
+        stage('Push Image to Docker Hub') {
+            steps {
+                script {
+                    sh 'docker push $omwarkri123/$react-app:latest'
+                }
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                script {
+                    // Stop old container if exists
+                    sh 'docker stop react-container || true'
+                    sh 'docker rm react-container || true'
+
+                    // Run new container
+                    sh 'docker run -d --name react-container -p 80:80 $omwarkri123/$react-app:latest'
+                }
+            }
+        }
+     }
+  }
