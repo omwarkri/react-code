@@ -1,4 +1,4 @@
-https://github.com/omwarkri/react-code.gitpipeline {
+pipeline {
     agent any
 
     environment {
@@ -7,6 +7,7 @@ https://github.com/omwarkri/react-code.gitpipeline {
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 git 'https://github.com/omwarkri/react-code.git'
@@ -16,7 +17,7 @@ https://github.com/omwarkri/react-code.gitpipeline {
         stage('Build React App & Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $omwarkri123/$react-app:latest .'
+                    sh "docker build -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest ."
                 }
             }
         }
@@ -24,8 +25,9 @@ https://github.com/omwarkri/react-code.gitpipeline {
         stage('Login to Docker Hub') {
             steps {
                 script {
-
- sh "echo $Radhakrushn@123 | docker login -u $omwarkri123 --password-stdin"
+                    withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'DOCKERHUB_PASS')]) {
+                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
+                    }
                 }
             }
         }
@@ -33,7 +35,7 @@ https://github.com/omwarkri/react-code.gitpipeline {
         stage('Push Image to Docker Hub') {
             steps {
                 script {
-                    sh 'docker push $omwarkri123/$react-app:latest'
+                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
                 }
             }
         }
@@ -41,14 +43,11 @@ https://github.com/omwarkri/react-code.gitpipeline {
         stage('Run Container') {
             steps {
                 script {
-                    // Stop old container if exists
                     sh 'docker stop react-container || true'
                     sh 'docker rm react-container || true'
-
-                    // Run new container
-                    sh 'docker run -d --name react-container -p 80:80 $omwarkri123/$react-app:latest'
+                    sh "docker run -d --name react-container -p 80:80 ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
                 }
             }
         }
-     }
-  }
+    }
+}
