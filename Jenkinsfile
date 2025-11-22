@@ -25,10 +25,8 @@ pipeline {
         stage('Login to Docker Hub') {
             steps {
                 script {
-                   withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'DOCKERHUB_PASS')]) {
-    sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
-
-
+                    withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'DOCKERHUB_PASS')]) {
+                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
                     }
                 }
             }
@@ -45,8 +43,11 @@ pipeline {
         stage('Run Container') {
             steps {
                 script {
+                    // stop old container if exists
                     sh 'docker stop react-container || true'
                     sh 'docker rm react-container || true'
+
+                    // run new container
                     sh "docker run -d --name react-container -p 80:80 ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
                 }
             }
