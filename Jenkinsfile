@@ -9,9 +9,9 @@ pipeline {
 
     stages {
 
-        stage('Clone Repository') {
+        stage('Checkout Code') {
             steps {
-                git 'https://github.com/omwarkri/react-code.git'
+                checkout scm
             }
         }
 
