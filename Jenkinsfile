@@ -2,53 +2,42 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USERNAME = "omwarkri123"
-        IMAGE_NAME = "react-app"
+        IMAGE_NAME = "my-react-app"
+        DOCKERHUB_USER = "omwarkri123"
+        IMAGE_TAG = "v2"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/omwarkri/react-code.git'
+                git 'https://github.com/omwarkri/react-code.git'
             }
         }
 
-        stage('Build React App & Docker Image') {
+        stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest ."
-                }
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
-        stage('Login to Docker Hub') {
+        stage('Tag Image') {
             steps {
-                script {
-                    withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'DOCKERHUB_PASS')]) {
-                        sh "echo ${DOCKERHUB_PASS} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin"
-                    }
-                }
+                sh 'docker tag $IMAGE_NAME $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG'
             }
         }
 
-        stage('Push Image to Docker Hub') {
+        stage('Push Image to DockerHub') {
             steps {
-                script {
-                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
-                }
-            }
-        }
-
-        stage('Run Container') {
-            steps {
-                script {
-                    // stop old container if exists
-                    sh 'docker stop react-container || true'
-                    sh 'docker rm react-container || true'
-
-                    // run new container
-                    sh "docker run -d --name react-container -p 80:80 ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:latest"
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    docker push $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
+                    '''
                 }
             }
         }
