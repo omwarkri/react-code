@@ -6,7 +6,7 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <h1 className="app-title">🚀 Welcome to  Om First React Application!</h1>
-        <h1>Auto deployed via Jenkins + K8s 🚀</h1>
+        <h1>Auto deployed via Jenkins + K8s with help by Om 🚀</h1>
 
         <p className="app-subtitle">
           Build amazing web apps with <span>React.js</span>
