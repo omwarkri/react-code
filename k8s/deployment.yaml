@@ -20,7 +20,7 @@ spec:
       containers:
       - name: react-app
         image: omwarkri123/my-react-app:v2
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
 
         ports:
         - containerPort: 80
