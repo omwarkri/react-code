@@ -46,5 +46,15 @@ pipeline {
                 sh 'docker push $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG'
             }
         }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                kubectl apply -f k8s/deployment.yaml -n react-prod
+                kubectl apply -f k8s/service.yaml -n react-prod
+                kubectl rollout status deployment/react-app -n react-prod
+                '''
+            }
+        }
     }
 }
