@@ -4,7 +4,10 @@ pipeline {
     environment {
         IMAGE_NAME = "my-react-app"
         DOCKERHUB_USER = "omwarkri123"
-        IMAGE_TAG = "v2"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        K8S_NAMESPACE = "react-prod"
+        DEPLOYMENT_NAME = "react-app"
+        CONTAINER_NAME = "react-app"
     }
 
     stages {
@@ -22,22 +25,17 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    '''
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
-            }
-        }
-
-        stage('Tag Image') {
-            steps {
-                sh 'docker tag $IMAGE_NAME $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG'
+                sh '''
+                docker build -t $IMAGE_NAME .
+                docker tag $IMAGE_NAME $DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG
+                '''
             }
         }
 
@@ -49,11 +47,13 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                kubectl apply -f k8s/deployment.yaml -n react-prod
-                kubectl apply -f k8s/service.yaml -n react-prod
-                kubectl rollout status deployment/react-app -n react-prod
-                '''
+                sh """
+                kubectl set image deployment/$DEPLOYMENT_NAME \
+                $CONTAINER_NAME=$DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG \
+                -n $K8S_NAMESPACE
+
+                kubectl rollout status deployment/$DEPLOYMENT_NAME -n $K8S_NAMESPACE
+                """
             }
         }
     }
